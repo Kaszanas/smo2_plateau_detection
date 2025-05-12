@@ -2,11 +2,11 @@ import logging
 from pathlib import Path
 from typing import List, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 import seaborn as sns
-import matplotlib.pyplot as plt
+from spm1d.plot import plot_mean_sd
 
 
 def plot_data(
@@ -183,3 +183,20 @@ def plot_results_absolute(
         plot_file = plot_dir / f"{sheet_name}_{criterion}_{start_idx}_{end_idx}.png"
         plt.savefig(plot_file)
         plt.close()
+
+
+def plot_mean_sd_intervals(plot_dir: Path, data: List[np.ndarray], title: str) -> None:
+    numpy_data = np.array(data)
+
+    plot_mean_sd(Y=numpy_data)
+
+    plt.xlabel("Time [s]")  # Replace with your desired label
+    plt.ylabel("SmO2 [%] Averaged")  # Replace with your desired label
+
+    plot_path_pdf = (plot_dir / f"{title}.pdf").resolve()
+    plot_path_png = (plot_dir / f"{title}.png").resolve()
+
+    plt.savefig(plot_path_pdf, dpi=300)
+    plt.savefig(plot_path_png, dpi=300)
+
+    plt.close()

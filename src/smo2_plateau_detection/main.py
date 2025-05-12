@@ -1,11 +1,12 @@
-from collections import defaultdict
 import json
-from pathlib import Path
 import logging
+from collections import defaultdict
+from pathlib import Path
 from typing import List, Tuple
 
-from matplotlib import pyplot as plt
+import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from smo2_plateau_detection.calculate_criteria import (
     detect_criterion_a,
@@ -14,8 +15,6 @@ from smo2_plateau_detection.calculate_criteria import (
     detect_criterion_d,
 )
 from smo2_plateau_detection.plot import plot_data, plot_results_absolute
-
-import numpy as np
 
 
 def pre_process_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -168,7 +167,7 @@ def get_max_time_plateau(start_end_list: list) -> float:
     return max_time
 
 
-def get_results(input_path: Path, plot_dir: Path, result_dir: Path) -> dict:
+def get_plateau_results(input_path: Path, plot_dir: Path, result_dir: Path) -> dict:
     """
     Gets results for all of the criteria specified in the Methods section.
 
@@ -296,7 +295,7 @@ def main():
         logging.info(f"Results directory {str(RESULTS_DIR)} does not exist! Creating!")
         RESULTS_DIR.mkdir(parents=True)
 
-    results = get_results(
+    results = get_plateau_results(
         input_path=DATA_DIR,
         plot_dir=PLOT_DIR,
         result_dir=RESULTS_DIR,
