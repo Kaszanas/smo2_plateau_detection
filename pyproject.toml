@@ -12,6 +12,7 @@ dependencies = [
     "pingouin>=0.5.5",
     "scikit-posthocs>=0.11.3",
     "seaborn>=0.13.2",
+    "spm1d>=0.4.34",
 ]
 
 [dependency-groups]
