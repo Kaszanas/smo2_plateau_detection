@@ -13,10 +13,14 @@ from smo2_plateau_detection.plot import plot_mean_sd_intervals
 
 def get_data(input_path: Path) -> Dict[str, List[np.ndarray]]:
     matrices_for_plotting = {
-        "Quadriceps Normoxia": [],
-        "Quadriceps Hypoxia": [],
-        "Triceps Normoxia": [],
-        "Triceps Hypoxia": [],
+        "Quadriceps Normoxia Test": [],
+        "Quadriceps Hypoxia Test": [],
+        "Triceps Normoxia Test": [],
+        "Triceps Hypoxia Test": [],
+        "Quadriceps Normoxia All": [],
+        "Quadriceps Hypoxia All": [],
+        "Triceps Normoxia All": [],
+        "Triceps Hypoxia All": [],
     }
 
     for excel_file in input_path.glob("*.xlsx"):
@@ -32,8 +36,20 @@ def get_data(input_path: Path) -> Dict[str, List[np.ndarray]]:
             skiprows=3,
         )
 
-        for _, sheet_df in sheets.items():
+        for sheet_name, sheet_df in sheets.items():
             sheet_df = pre_process_data(sheet_df)
+
+            path_to_data_export = Path(f"./data/export/").resolve()
+            if not path_to_data_export.exists():
+                logging.info(
+                    f"Data export directory {str(path_to_data_export)} does not exist! Creating!"
+                )
+                path_to_data_export.mkdir(parents=True)
+
+            path_to_exported_file = (
+                path_to_data_export / f"{file_name}_{sheet_name}.csv"
+            ).resolve()
+            sheet_df.to_csv(path_or_buf=path_to_exported_file)
 
             # Cut out the test data:
             only_max_test_data = cut_out_test_data(
@@ -42,10 +58,20 @@ def get_data(input_path: Path) -> Dict[str, List[np.ndarray]]:
                 omit_end_rows=32,
             )
 
+            # Add to the matrix entire data:
+            add_to_matrix(
+                file_name=file_name,
+                only_max_test_data=sheet_df,
+                matrices_for_plotting=matrices_for_plotting,
+                suffix=" All",
+            )
+
+            # Add to the matrix only test data:
             add_to_matrix(
                 file_name=file_name,
                 only_max_test_data=only_max_test_data,
                 matrices_for_plotting=matrices_for_plotting,
+                suffix=" Test",
             )
 
     return matrices_for_plotting
@@ -55,21 +81,22 @@ def add_to_matrix(
     file_name: str,
     only_max_test_data: pd.DataFrame,
     matrices_for_plotting: Dict[str, List[np.ndarray]],
+    suffix: str,
 ) -> None:
     column_name = "SmO2 Averaged"
 
     test_data_array = only_max_test_data[column_name].to_numpy()
     if "hipo" in file_name.lower() and "quad" in file_name.lower():
-        matrices_for_plotting["Quadriceps Hypoxia"].append(test_data_array)
+        matrices_for_plotting[f"Quadriceps Hypoxia{suffix}"].append(test_data_array)
         return
     if "normo" in file_name.lower() and "quad" in file_name.lower():
-        matrices_for_plotting["Quadriceps Normoxia"].append(test_data_array)
+        matrices_for_plotting[f"Quadriceps Normoxia{suffix}"].append(test_data_array)
         return
     if "hipo" in file_name.lower() and "tricep" in file_name.lower():
-        matrices_for_plotting["Triceps Hypoxia"].append(test_data_array)
+        matrices_for_plotting[f"Triceps Hypoxia{suffix}"].append(test_data_array)
         return
     if "normo" in file_name.lower() and "tricep" in file_name.lower():
-        matrices_for_plotting["Triceps Normoxia"].append(test_data_array)
+        matrices_for_plotting[f"Triceps Normoxia{suffix}"].append(test_data_array)
         return
 
     logging.warning(
@@ -116,10 +143,15 @@ def main():
                 )
                 value[i] = value[i][:min_length]
 
+        place_vertical = False
+        if "All" in key:
+            place_vertical = True
+
         plot_mean_sd_intervals(
             plot_dir=PLOT_DIR,
             data=value,
             title=key,
+            place_vertical=place_vertical,
         )
 
 

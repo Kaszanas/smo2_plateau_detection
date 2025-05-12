@@ -8,6 +8,9 @@ import pandas as pd
 import seaborn as sns
 from spm1d.plot import plot_mean_sd
 
+plt.rcParams["font.family"] = "Arial"
+plt.rcParams["font.weight"] = "bold"
+
 
 def plot_data(
     plot_dir: Path,
@@ -185,13 +188,37 @@ def plot_results_absolute(
         plt.close()
 
 
-def plot_mean_sd_intervals(plot_dir: Path, data: List[np.ndarray], title: str) -> None:
+def plot_mean_sd_intervals(
+    plot_dir: Path, data: List[np.ndarray], title: str, place_vertical: bool
+) -> None:
     numpy_data = np.array(data)
 
-    plot_mean_sd(Y=numpy_data)
+    line_color = None
+    face_color = None
+    edge_color = None
+    if "hypoxia" in title.lower():
+        line_color = "r"
+        face_color = (1, 0.7, 0.7)
+        edge_color = "r"
+    elif "normoxia" in title.lower():
+        line_color = "b"
+        face_color = (0.7, 0.7, 1)
+        edge_color = "b"
 
-    plt.xlabel("Time [s]")  # Replace with your desired label
-    plt.ylabel("SmO2 [%] Averaged")  # Replace with your desired label
+    plot_mean_sd(
+        Y=numpy_data,
+        linecolor=line_color,
+        facecolor=face_color,
+        edgecolor=edge_color,
+    )
+
+    plt.xlabel(
+        "Time [s]", fontdict={"family": "Arial", "weight": "bold"}
+    )  # Replace with your desired label
+    plt.ylabel(
+        "Muscle oxygen saturation [%SmO2]",
+        fontdict={"family": "Arial", "weight": "bold"},
+    )  # Replace with your desired label
 
     plot_path_pdf = (plot_dir / f"{title}.pdf").resolve()
     plot_path_png = (plot_dir / f"{title}.png").resolve()
@@ -200,3 +227,46 @@ def plot_mean_sd_intervals(plot_dir: Path, data: List[np.ndarray], title: str) -
     plt.savefig(plot_path_png, dpi=300)
 
     plt.close()
+
+    if place_vertical:
+        # Rotate the x-axis labels to vertical
+        plot_mean_sd(
+            Y=numpy_data,
+            linecolor=line_color,
+            facecolor=face_color,
+            edgecolor=edge_color,
+        )
+
+        plt.xlabel(
+            "Time [s]", fontdict={"family": "Arial", "weight": "bold"}
+        )  # Replace with your desired label
+        plt.ylabel(
+            "Muscle oxygen saturation [%SmO2]",
+            fontdict={"family": "Arial", "weight": "bold"},
+        )  # Replace with your desired label
+
+        # Add vertical dotted lines at index 32 and -32
+
+        test_start = 32
+        test_end = len(numpy_data[0]) - 32
+
+        plt.axvline(
+            x=test_start,
+            color="black",
+            linestyle=":",
+            label="Test Start",
+        )
+        plt.axvline(
+            x=test_end,
+            color="black",
+            linestyle=":",
+            label="Test End",
+        )
+
+        plot_path_pdf = (plot_dir / f"{title}_lines.pdf").resolve()
+        plot_path_png = (plot_dir / f"{title}_lines.png").resolve()
+
+        plt.savefig(plot_path_pdf, dpi=300)
+        plt.savefig(plot_path_png, dpi=300)
+
+        plt.close()
